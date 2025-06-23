@@ -16,13 +16,15 @@ import logging
 
 import google.cloud.storage as storage
 from google.api_core import exceptions
+from app.utils.client_manager import get_storage_client
 
 # app/utils/gcs.py
 
 from google.cloud import storage
 
 def upload_to_gcs(bucket_name: str, local_file: str, gcs_blob: str):
-    client = storage.Client()
+    """Upload file to GCS using global client manager."""
+    client = get_storage_client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(gcs_blob)
     blob.upload_from_filename(local_file)
@@ -32,7 +34,7 @@ def upload_file_to_gcs(bucket_name: str, local_file: str, remote_path: str) -> s
     """
     Uploads a local file to GCS and returns the GCS URI.
     """
-    client = storage.Client()
+    client = get_storage_client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(remote_path)
     blob.upload_from_filename(local_file)

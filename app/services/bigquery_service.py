@@ -2,6 +2,8 @@ from google.cloud import bigquery
 from typing import List, Dict, Any, Optional
 from app.utils.config import PlatformConfig
 from app.utils.tracing import trace_log
+from app.utils.client_manager import PickleSafeService
+from app.utils.config import PlatformConfig
 import logging
 import json
 
@@ -11,10 +13,15 @@ _trace_logger = logging.getLogger("app.tracing")
 _trace_logger.setLevel(logging.DEBUG)
 
 class BigQueryService:
-    def __init__(self, config:PlatformConfig):
-        self.client = bigquery.Client(project=config.project_id)
+    def __init__(self, config: PlatformConfig):
+        super().__init__(config.project_id)
         self.dataset = config.bigquery_dataset
         self.config = config
+    
+    @property
+    def client(self):
+        """Get BigQuery client."""
+        return self.client_manager.get_bigquery_client()
 
     def query_logs(self, query_filter: Optional[str] = None, limit: int = 1000) -> List[Dict[str, Any]]:
         """

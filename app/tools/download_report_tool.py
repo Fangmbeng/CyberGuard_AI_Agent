@@ -1,6 +1,8 @@
 from google.cloud import storage
 from typing import Dict
 import os
+from app.utils.client_manager import get_storage_client
+
 
 def download_report(report_id: str) -> Dict[str, str]:
     """
@@ -10,7 +12,8 @@ def download_report(report_id: str) -> Dict[str, str]:
     if not bucket_name:
         raise RuntimeError("Environment variable REPORTS_BUCKET is not set")
 
-    client = storage.Client()
+    # Use the global client manager
+    client = get_storage_client()
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(f"{report_id}.pdf")
 

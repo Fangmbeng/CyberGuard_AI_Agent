@@ -36,40 +36,19 @@ from app.utils.typing import Feedback
 
 
 class AgentEngineApp(AdkApp):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Store configuration instead of client objects
-        self._project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-        self._logger = None
-        self._tracer_provider = None
-
     def set_up(self) -> None:
         """Set up logging and tracing for the agent engine app."""
         super().set_up()
-        self._setup_logging_and_tracing()
-
-    def _setup_logging_and_tracing(self):
-        """Initialize logging and tracing clients."""
-        # Create logging client lazily
         logging_client = google_cloud_logging.Client()
-        self._logger = logging_client.logger(__name__)
-        
-        # Set up tracing
+        self.logger = logging_client.logger(__name__)
         provider = TracerProvider()
         processor = export.BatchSpanProcessor(
-            CloudTraceLoggingSpanExporter(project_id=self._project_id)
+            CloudTraceLoggingSpanExporter(
+                project_id=os.environ.get("GOOGLE_CLOUD_PROJECT")
+            )
         )
         provider.add_span_processor(processor)
         trace.set_tracer_provider(provider)
-        self._tracer_provider = provider
-
-    @property
-    def logger(self):
-        """Get logger, creating it if it doesn't exist."""
-        if self._logger is None:
-            logging_client = google_cloud_logging.Client()
-            self._logger = logging_client.logger(__name__)
-        return self._logger
 
     def register_feedback(self, feedback: dict[str, Any]) -> None:
         """Collect and log feedback."""
@@ -84,19 +63,6 @@ class AgentEngineApp(AdkApp):
         operations = super().register_operations()
         operations[""] = operations[""] + ["register_feedback"]
         return operations
-
-    def __getstate__(self):
-        """Custom pickle serialization - remove unpickleable objects."""
-        state = self.__dict__.copy()
-        # Remove unpickleable Google Cloud clients
-        state['_logger'] = None
-        state['_tracer_provider'] = None
-        return state
-
-    def __setstate__(self, state):
-        """Custom pickle deserialization - restore state."""
-        self.__dict__.update(state)
-        # Clients will be recreated when needed via lazy initialization
 
     def clone(self) -> "AgentEngineApp":
         """Returns a fresh clone of the ADK application without deep-copying client state."""
@@ -221,7 +187,7 @@ if __name__ == "__main__":
     print("""
     ╔═══════════════════════════════════════════════════════════╗
     ║                                                           ║
-    ║   🤖 DEPLOYING AGENT TO VERTEX AI AGENT ENGINE 🤖         ║
+    ║   🤖 DEPLOYING AGENT TO VERTEX AI AGENT ENGINE 🤖        ║
     ║                                                           ║
     ╚═══════════════════════════════════════════════════════════╝
     """)

@@ -3,16 +3,22 @@ from google.cloud import storage
 from app.tools.report_tools import generate_compliance_report, render_report_to_pdf
 from app.models.report import Report
 from app.services.bigquery_service import BigQueryService
+from app.utils.client_manager import PickleSafeService
+from app.utils.config import PlatformConfig
 import logging
 
 logger = logging.getLogger(__name__)
 
 class ReportingService:
-    def __init__(self, bucket_name: str, bq_service: BigQueryService):
-        self.bucket_name = bucket_name
-        self.storage = storage.Client()
-        self._reports: Dict[str, Report] = {}
-        self.bq = bq_service
+    def __init__(self, config: PlatformConfig):
+        super().__init__(config.project_id)
+        self.dataset = config.bigquery_dataset
+        self.config = config
+    
+    @property
+    def client(self):
+        """Get BigQuery client."""
+        return self.client_manager.get_bigquery_client()
 
     def create_report(self, sections: List[str]) -> Report:
         report = generate_compliance_report(sections)
