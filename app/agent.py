@@ -36,7 +36,6 @@ from app.services.bigquery_service import BigQueryService
 from app.services.vertex_ai_service import VertexAIService
 from app.services.reporting_service import ReportingService
 from app.services.ingestion_service import IngestionService
-from app.services.document_service import retrieve_docs
 
 
 from app.agents.reporter_agent import ReporterAgent
