@@ -75,13 +75,18 @@ class AgentEngineApp(AdkApp):
             env_vars=tmpl.get("env_vars"),
         )
     
+
     def __getstate__(self):
-        # Only serialize the template attributes; drop logger, tracer, etc.
-        return {"_tmpl_attrs": self._tmpl_attrs}
+        # Start with whatever ADK normally wants to serialize
+        state = super().__getstate__() if hasattr(super(), "__getstate__") else self.__dict__.copy()
+        # Remove any attributes that hold unpickleable clients
+        for bad in ("logger", "_tracer_provider", "_span_processor"):
+            state.pop(bad, None)
+        return state
 
     def __setstate__(self, state):
-        # Rehydrate minimal state; ADK will call set_up() at runtime to recreate clients.
-        self._tmpl_attrs = state["_tmpl_attrs"]
+        # Restore the rest of the state
+        self.__dict__.update(state)
 
 
 def deploy_agent_engine_app(
