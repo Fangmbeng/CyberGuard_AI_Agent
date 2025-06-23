@@ -1,0 +1,74 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  - name: "python:3.11-slim"
+    id: deploy-data-ingestion-pipeline-prod
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd data_ingestion && pip install uv==0.6.12 --user && cd data_ingestion_pipeline && \
+        uv sync --frozen && uv run python submit_pipeline.py
+    env:
+      - "PIPELINE_ROOT=gs://crucial-strata-419415-vertex-pipelines"
+      - "REGION=us-central1"
+      - "DATA_STORE_REGION=global"
+      - "DATA_STORE_ID=cyberguard-threat-ingestion_1750289908683"
+      - "PROJECT_ID=crucial-strata-419415"
+      - "SERVICE_ACCOUNT=cyberguard-sa@crucial-strata-419415.iam.gserviceaccount.com"
+      - "PIPELINE_NAME=cyber_intel_ingest"
+      - "CRON_SCHEDULE=0 * * * *"
+      - "DISABLE_CACHING=TRUE"
+      - 'PATH=/usr/local/bin:/usr/bin:~/.local/bin'
+
+  - name: "python:3.11-slim"
+    id: install-dependencies
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        pip install uv==0.6.12 --user && uv sync --frozen
+    env:
+      - 'PATH=/usr/local/bin:/usr/bin:~/.local/bin'
+
+  - name: "python:3.11-slim"
+    id: trigger-deployment
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        uv export --no-hashes --no-sources --no-header --no-dev --no-emit-project --no-annotate --frozen > .requirements.txt
+        uv run app/agent_engine_app.py \
+          --project crucial-strata-419415 \
+          --location us-central1 \
+          --set-env-vars="COMMIT_SHA=${COMMIT_SHA},DATA_STORE_ID=cyberguard-threat-ingestion_1750289908683,DATA_STORE_REGION=global"
+    env:
+      - 'PATH=/usr/local/bin:/usr/bin:~/.local/bin'
+
+substitutions:
+  _PROD_PROJECT_ID: crucial-strata-419415
+  _REGION: us-central1
+  _PIPELINE_SA_EMAIL: cyberguard-sa@crucial-strata-419415.iam.gserviceaccount.com
+  _PIPELINE_GCS_ROOT: gs://crucial-strata-419415-vertex-pipelines
+  _PIPELINE_NAME: cyber_intel_ingest
+  _PIPELINE_CRON_SCHEDULE: "0 * * * *"
+  _DATA_STORE_REGION: global
+  _DATA_STORE_ID: cyberguard-threat-ingestion_1750289908683
+
+logsBucket: gs://crucial-strata-419415-my-awesome-agent-logs-data/build-logs
+
+options:
+  substitutionOption: ALLOW_LOOSE
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
