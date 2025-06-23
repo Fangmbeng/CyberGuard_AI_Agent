@@ -15,9 +15,15 @@
 from data_ingestion_pipeline.components.ingest_data import ingest_data
 from data_ingestion_pipeline.components.process_data import process_data
 from kfp import dsl
-
+from kfp.v2.dsl import component
 
 @dsl.pipeline(description="A pipeline to run ingestion of new data into the datastore")
+@component(
+    base_image="python:3.11-slim",
+    packages_to_install=["pandas","google-cloud-bigquery"],
+    cpu_limit=1,        # ← integer, not string
+    memory_limit="2Gi",
+)
 def pipeline(
     project_id: str,
     location: str,
