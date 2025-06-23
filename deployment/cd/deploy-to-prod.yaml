@@ -20,7 +20,7 @@ steps:
       - -c
       - |
         cd data_ingestion && pip install uv==0.6.12 --user && cd data_ingestion_pipeline && \
-        uv sync --frozen && uv run python submit_pipeline.py
+        uv sync --frozen
     env:
       - "PIPELINE_ROOT=gs://crucial-strata-419415-vertex-pipelines"
       - "REGION=us-central1"
