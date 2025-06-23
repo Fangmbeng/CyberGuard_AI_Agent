@@ -21,7 +21,7 @@ repository_name        = "Fangmbeng-CyberGuard_AI_Agent"
 # New ingestion vars:
 data_store_id          = "cyberguard-threat-ingestion_1750289908683"
 data_store_region      = "global"
-pipeline_root          = "gs://crucial-strata-419415-vertex-pipelines"
-pipeline_name          = "cyber_intel_ingest"
+pipeline_root          = ""
+pipeline_name          = ""
 service_account        = "cyberguard-sa@crucial-strata-419415.iam.gserviceaccount.com"
 cron_schedule          = "0 * * * *"  # hourly ingestion
