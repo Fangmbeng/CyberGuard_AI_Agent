@@ -55,7 +55,7 @@ def pipeline(
             embedding_column="embedding",
         )
         .set_retry(num_retries=2)
-        .set_cpu_limit("1")        # ← equivalent to e2-standard-1 (1 vCPU)
+        .set_cpu_limit(1)        # ← equivalent to e2-standard-1 (1 vCPU)
         .set_memory_limit("2Gi")   # ← 2 GiB RAM (tweak as needed)
     )
 
