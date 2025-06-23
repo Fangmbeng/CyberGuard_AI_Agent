@@ -74,7 +74,14 @@ class AgentEngineApp(AdkApp):
             artifact_service_builder=tmpl.get("artifact_service_builder"),
             env_vars=tmpl.get("env_vars"),
         )
+    
+    def __getstate__(self):
+        # Only serialize the template attributes; drop logger, tracer, etc.
+        return {"_tmpl_attrs": self._tmpl_attrs}
 
+    def __setstate__(self, state):
+        # Rehydrate minimal state; ADK will call set_up() at runtime to recreate clients.
+        self._tmpl_attrs = state["_tmpl_attrs"]
 
 
 def deploy_agent_engine_app(
