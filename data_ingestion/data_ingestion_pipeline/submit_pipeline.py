@@ -148,6 +148,7 @@ if __name__ == "__main__":
     if not args.schedule_only:
         logging.info("Running pipeline and waiting for completion...")
         job.submit(service_account=args.service_account)
+        import time; time.sleep(30)
         job.wait()
         logging.info("Pipeline completed!")
 
