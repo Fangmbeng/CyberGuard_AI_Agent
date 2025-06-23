@@ -17,7 +17,7 @@ import logging
 import os
 import sys
 
-from data_ingestion_pipeline.pipeline import pipeline
+from data_ingestion.data_ingestion_pipeline.pipeline import pipeline
 from google.cloud import aiplatform
 from kfp import compiler
 
