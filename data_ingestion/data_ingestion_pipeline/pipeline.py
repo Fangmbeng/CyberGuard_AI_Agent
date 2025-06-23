@@ -34,19 +34,24 @@ def pipeline(
     """Processes data and ingests it into a datastore for RAG Retrieval"""
 
     # Process the data and generate embeddings
-    processed_data = process_data(
-        project_id=project_id,
-        schedule_time=dsl.PIPELINE_JOB_SCHEDULE_TIME_UTC_PLACEHOLDER,
-        is_incremental=is_incremental,
-        look_back_days=look_back_days,
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        destination_dataset=destination_dataset,
-        destination_table=destination_table,
-        deduped_table=deduped_table,
-        location=location,
-        embedding_column="embedding",
-    ).set_retry(num_retries=2)
+    processed_data = (
+        process_data(
+            project_id=project_id,
+            schedule_time=dsl.PIPELINE_JOB_SCHEDULE_TIME_UTC_PLACEHOLDER,
+            is_incremental=is_incremental,
+            look_back_days=look_back_days,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            destination_dataset=destination_dataset,
+            destination_table=destination_table,
+            deduped_table=deduped_table,
+            location=location,
+            embedding_column="embedding",
+        )
+        .set_retry(num_retries=2)
+        .set_cpu_limit("1")        # ← equivalent to e2-standard-1 (1 vCPU)
+        .set_memory_limit("2Gi")   # ← 2 GiB RAM (tweak as needed)
+    )
 
     # Ingest the processed data into Vertex AI Search datastore
     ingest_data(
